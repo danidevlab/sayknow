@@ -102,6 +102,13 @@ async function sendAsk(text) {
       appendMessage('오류: 서버 응답 상태 ' + res.status + '\n' + body, 'ai');
     } else {
       appendMessage(body, 'ai');
+      
+      // [site]URL 패턴 감지하여 팝업 열기
+      const siteMatch = body.match(/\[site\]([^\s]+)/);
+      if (siteMatch) {
+        const siteUrl = siteMatch[1];
+        window.open(siteUrl, '_blank');
+      }
     }
   } catch (err) {
     setLoading(false);
