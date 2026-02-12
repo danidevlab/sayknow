@@ -7,4 +7,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase Function
-        run: curl "https://[본인프로젝트ID].supabase.co/functions/v1/[함수이름]?askdata=ping"
+        run: curl "https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/[함수이름]?askdata=ping"
