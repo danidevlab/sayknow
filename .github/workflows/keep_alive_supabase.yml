@@ -10,7 +10,7 @@ jobs:
         id: ping
         run: |
           # curl 응답 코드를 확인합니다.
-          response=$(curl -s -o /dev/null -w "%{http_code}" "https://vqtolrqlqvfpzjsedjrw.supabase.co")
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/smooth-task/?askdata=?ask=dd")
           echo "status_code=$response" >> $GITHUB_OUTPUT
           if [ "$response" -ne 200 ]; then
             echo "Ping failed with status $response"
