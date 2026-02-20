@@ -6,12 +6,21 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase Function
+      - name: Initial Request to Warm Up Function
+        id: warmup
+        run: |
+          echo "🔥 Sending initial request to warm up the function..."
+          curl -s "https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/smooth-task/?askdata=?ask=dd" > /dev/null
+          echo "⏳ Waiting 30 seconds for function to fully initialize..."
+          sleep 30
+
+      - name: Check Supabase Function Status
         id: ping
         run: |
-          # curl 응답 코드를 확인합니다.
+          echo "✅ Checking function status after 30 seconds..."
           response=$(curl -s -o /dev/null -w "%{http_code}" "https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/smooth-task/?askdata=?ask=dd")
           echo "status_code=$response" >> $GITHUB_OUTPUT
+          echo "Response status: $response"
           if [ "$response" -ne 200 ]; then
             echo "Ping failed with status $response"
             exit 1
