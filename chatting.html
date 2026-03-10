@@ -109,18 +109,17 @@ async function sendAsk(text) {
 
   try {
     const res = await fetch(url, { method: 'GET', mode: 'cors' });
-    let body;
-    const ct = res.headers.get('content-type') || '';
-    if (ct.includes('application/json')) {
-      const json = await res.json();
+    // 항상 text로 먼저 읽기
+    let body = await res.text();
+
+    // JSON 응답인 경우 처리
+    try {
+      const json = JSON.parse(body);
       if (typeof json === 'object' && json !== null) {
-        if (json.answer) body = String(json.answer);
-        else body = JSON.stringify(json, null, 2);
-      } else {
-        body = String(json);
+        body = json.answer ? String(json.answer) : JSON.stringify(json, null, 2);
       }
-    } else {
-      body = await res.text();
+    } catch (e) {
+      // JSON이 아니면 그대로 사용 (XML 등)
     }
 
     // <answer> 태그 추출
