@@ -5,60 +5,356 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sayknow Chat</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 0; display:flex; flex-direction:column; height:100vh; }
-    .container { max-width:800px; margin:auto; display:flex; flex-direction:column; height:100%; padding:16px; box-sizing:border-box; }
-    .messages { flex:1; overflow:auto; border:1px solid #ddd; padding:12px; border-radius:8px; background:#fafafa; }
-    .msg { margin-bottom:10px; }
-    .msg.user { text-align:right; }
-    .bubble { display:inline-block; padding:8px 12px; border-radius:12px; max-width:70%; }
-    .bubble.user { background:#007bff; color:#fff; }
-    .bubble.ai { background:#f1f1f1; color:#111; }
-    .controls { display:flex; gap:8px; margin-top:12px; }
-    input[type="text"] { flex:1; padding:10px; border:1px solid #ccc; border-radius:8px; }
-    button { padding:10px 14px; border-radius:8px; border:0; background:#007bff; color:#fff; cursor:pointer; }
-    .meta { font-size:12px; color:#666; margin-bottom:8px; }
-    .loading { font-style:italic; color:#666; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #fff;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+      width: 100%;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .header-left h2 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .settings-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 12px;
+      background: #f3f4f6;
+      color: #111;
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: 0.15s;
+    }
+
+    .settings-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .messages {
+      flex: 1;
+      overflow: auto;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fafafa;
+      min-height: 280px;
+    }
+
+    .msg {
+      margin-bottom: 10px;
+    }
+
+    .msg.user {
+      text-align: right;
+    }
+
+    .bubble {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 12px;
+      max-width: 70%;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .bubble.user {
+      background: #007bff;
+      color: #fff;
+    }
+
+    .bubble.ai {
+      background: #f1f1f1;
+      color: #111;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    button.send-btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 0;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .loading {
+      font-style: italic;
+      color: #666;
+    }
+
+    .bottom-meta {
+      margin-top: 8px;
+    }
+
+    /* 설정 모달 */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .modal h3 {
+      margin: 0 0 14px 0;
+      font-size: 22px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 10px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .field-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      color: #222;
+    }
+
+    .field-help {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .btn-secondary,
+    .btn-primary,
+    .btn-danger {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .saved-key-box {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #444;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px 12px;
+      word-break: break-all;
+    }
   </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-R87ZHJP04L"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-R87ZHJP04L');
-</script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R87ZHJP04L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-R87ZHJP04L');
+  </script>
 </head>
 <body>
   <div class="container">
-    <h2>Sayknow Ai</h2>
-    <div class="meta">트래픽이 몰릴 경우 답변이 오지 않을 수 있습니다.</br>
-      답이 오지 않을 경우 5분정도 뒤에 다시 시도해주세요</br>
-      하루에 25개까지만 전송할 수 있습니다</div>
+    <div class="header">
+      <div class="header-left">
+        <h2>Sayknow Ai</h2>
+        <div class="meta">
+          트래픽이 몰릴 경우 답변이 오지 않을 수 있습니다.<br>
+          답이 오지 않을 경우 5분정도 뒤에 다시 시도해주세요<br>
+          하루에 25개까지만 전송할 수 있습니다
+        </div>
+      </div>
+
+      <button id="openSettings" class="settings-btn" title="설정">⚙</button>
+    </div>
 
     <div id="messages" class="messages" aria-live="polite"></div>
 
     <div class="controls">
       <input id="input" type="text" placeholder="질문을 입력하세요" />
-      <button id="send">전송</button>
+      <button id="send" class="send-btn">전송</button>
     </div>
-    <div style="margin-top:8px;">
-      <small class="meta">ai는 실수를 할 수 있습니다. 중요한 정보는 한번 더 확인하세요! </small>
+
+    <div class="bottom-meta">
+      <small class="meta">ai는 실수를 할 수 있습니다. 중요한 정보는 한번 더 확인하세요!</small>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal">
+      <button id="closeSettings" class="modal-close" title="닫기">×</button>
+      <h3>설정</h3>
+
+      <label class="field-label" for="keyInput">무제한 키</label>
+      <input id="keyInput" type="text" placeholder="무제한 키를 입력하세요" />
+
+      <div class="field-help">
+        여기에 입력한 키는 이 브라우저에 저장돼.<br>
+        이후 질문 전송 시 자동으로 같이 보내짐.
+      </div>
+
+      <div id="savedKeyBox" class="saved-key-box">현재 저장된 키: 없음</div>
+
+      <div class="modal-actions">
+        <button id="clearKey" class="btn-danger">키 삭제</button>
+        <button id="saveKey" class="btn-primary">저장</button>
+        <button id="cancelSettings" class="btn-secondary">닫기</button>
+      </div>
     </div>
   </div>
 
 <script>
-const API_BASE = 'https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/smooth-task/?askdata=';
+const API_URL = 'https://vqtolrqlqvfpzjsedjrw.supabase.co/functions/v1/smooth-task/';
+
+const STORAGE_KEY_NAME = 'sayknow_unlimited_key';
+
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('send');
 
+const settingsModal = document.getElementById('settingsModal');
+const openSettingsBtn = document.getElementById('openSettings');
+const closeSettingsBtn = document.getElementById('closeSettings');
+const cancelSettingsBtn = document.getElementById('cancelSettings');
+const saveKeyBtn = document.getElementById('saveKey');
+const clearKeyBtn = document.getElementById('clearKey');
+const keyInputEl = document.getElementById('keyInput');
+const savedKeyBoxEl = document.getElementById('savedKeyBox');
+
 function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
 }
 
-// XML에서 <answer> 태그 내용만 추출
+function getSavedKey() {
+  return localStorage.getItem(STORAGE_KEY_NAME) || '';
+}
+
+function setSavedKey(key) {
+  localStorage.setItem(STORAGE_KEY_NAME, key);
+}
+
+function clearSavedKey() {
+  localStorage.removeItem(STORAGE_KEY_NAME);
+}
+
+function updateSavedKeyView() {
+  const key = getSavedKey();
+  savedKeyBoxEl.textContent = key
+    ? '현재 저장된 키: ' + key
+    : '현재 저장된 키: 없음';
+}
+
+function openSettingsModal() {
+  keyInputEl.value = getSavedKey();
+  updateSavedKeyView();
+  settingsModal.classList.add('show');
+}
+
+function closeSettingsModal() {
+  settingsModal.classList.remove('show');
+}
+
 function extractAnswer(text) {
-  // XML 파싱 시도
   try {
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, 'text/xml');
@@ -66,20 +362,20 @@ function extractAnswer(text) {
     if (answerEl) return answerEl.textContent.trim();
   } catch (e) {}
 
-  // XML 파싱 실패 시 정규식으로 fallback
   const match = text.match(/<answer>([\s\S]*?)<\/answer>/);
   if (match) return match[1].trim();
 
-  // <answer> 태그가 없으면 원문 그대로 반환
   return text;
 }
 
-function appendMessage(text, who='ai') {
+function appendMessage(text, who = 'ai') {
   const wrapper = document.createElement('div');
   wrapper.className = 'msg ' + (who === 'user' ? 'user' : 'ai');
+
   const bubble = document.createElement('div');
   bubble.className = 'bubble ' + (who === 'user' ? 'user' : 'ai');
   bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br/>');
+
   wrapper.appendChild(bubble);
   messagesEl.appendChild(wrapper);
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -87,6 +383,8 @@ function appendMessage(text, who='ai') {
 
 function setLoading(on) {
   if (on) {
+    if (document.getElementById('loading-indicator')) return;
+
     const el = document.createElement('div');
     el.className = 'msg ai loading';
     el.id = 'loading-indicator';
@@ -100,38 +398,50 @@ function setLoading(on) {
 }
 
 async function sendAsk(text) {
-  if (!text.trim()) return;
-  appendMessage(text, 'user');
+  const trimmed = text.trim();
+  if (!trimmed) return;
+
+  appendMessage(trimmed, 'user');
   inputEl.value = '';
   setLoading(true);
 
-  const url = API_BASE + '?ask=' + encodeURIComponent(text);
+  const savedKey = getSavedKey();
+
+  const params = new URLSearchParams();
+  params.set('askdata', trimmed);
+
+  if (savedKey) {
+    params.set('key', savedKey);
+  }
+
+  const url = API_URL + '?' + params.toString();
 
   try {
-    const res = await fetch(url, { method: 'GET', mode: 'cors' });
-    // 항상 text로 먼저 읽기
+    const res = await fetch(url, {
+      method: 'GET',
+      mode: 'cors'
+    });
+
     let body = await res.text();
 
-    // JSON 응답인 경우 처리
     try {
       const json = JSON.parse(body);
       if (typeof json === 'object' && json !== null) {
         body = json.answer ? String(json.answer) : JSON.stringify(json, null, 2);
       }
     } catch (e) {
-      // JSON이 아니면 그대로 사용 (XML 등)
+      // JSON 아니면 그대로
     }
 
-    // <answer> 태그 추출
     body = extractAnswer(body);
 
     setLoading(false);
+
     if (!res.ok) {
       appendMessage('오류: 서버 응답 상태 ' + res.status + '\n' + body, 'ai');
     } else {
       appendMessage(body, 'ai');
 
-      // [site]URL 패턴 감지하여 팝업 열기
       const siteMatch = body.match(/\[site\]([^\s]+)/);
       if (siteMatch) {
         const siteUrl = siteMatch[1];
@@ -144,13 +454,39 @@ async function sendAsk(text) {
   }
 }
 
+openSettingsBtn.addEventListener('click', openSettingsModal);
+closeSettingsBtn.addEventListener('click', closeSettingsModal);
+cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) {
+    closeSettingsModal();
+  }
+});
+
+saveKeyBtn.addEventListener('click', () => {
+  const key = keyInputEl.value.trim();
+  setSavedKey(key);
+  updateSavedKeyView();
+  closeSettingsModal();
+});
+
+clearKeyBtn.addEventListener('click', () => {
+  clearSavedKey();
+  keyInputEl.value = '';
+  updateSavedKeyView();
+});
+
 sendBtn.addEventListener('click', () => sendAsk(inputEl.value));
-inputEl.addEventListener('keydown', e => {
+
+inputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     sendAsk(inputEl.value);
   }
 });
+
+updateSavedKeyView();
 </script>
 </body>
 </html>
